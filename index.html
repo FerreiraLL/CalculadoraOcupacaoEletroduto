@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Calculadora de Ocupação de Eletrodutos</title>
+  <style>
+    :root{
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    *{box-sizing:border-box;}
+    body{
+      background:#0f1724;
+      color:#e6eef8;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:28px;
+    }
+    .card{
+      background:linear-gradient(180deg,#0b1220 0%, #071019 100%);
+      border-radius:16px;
+      padding:24px 24px 28px;
+      max-width:900px;
+      width:100%;
+      box-shadow:0 8px 30px rgba(2,6,23,.6);
+    }
+    h1{
+      margin:0 0 4px 0;
+      font-size:22px;
+      text-align:center;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+    }
+    h3{
+      font-size:15px;
+      margin:18px 0 10px;
+      color:#f1f5f9;
+      border-bottom:1px solid rgba(148,163,184,0.4);
+      padding-bottom:4px;
+      font-weight:600;
+    }
+    .section{
+      margin-top:18px;
+    }
+    .fields-grid{
+      display:grid;
+      grid-template-columns:1.6fr 1.4fr;
+      gap:14px 18px;
+    }
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      font-size:13px;
+    }
+    label{
+      color:#cbd5f5;
+      font-weight:500;
+      font-size:12px;
+    }
+    input, select{
+      background:#020617;
+      color:#e5e7eb;
+      border-radius:8px;
+      border:1px solid rgba(148,163,184,0.55);
+      padding:6px 8px;
+      font-size:14px;
+      outline:none;
+      transition:border-color .16s, box-shadow .16s, background .16s;
+      height:34px;
+    }
+    input:focus, select:focus{
+      border-color:#38bdf8;
+      box-shadow:0 0 0 1px rgba(56,189,248,0.65);
+      background:#02091e;
+    }
+    input::placeholder{
+      color:#6b7280;
+    }
+
+    .cable-row{
+      display:grid;
+      grid-template-columns:1.7fr 1.3fr 1.1fr 1.1fr auto;
+      gap:10px;
+      align-items:end;
+      margin-bottom:10px;
+    }
+    .field-small input{
+      font-size:13px;
+    }
+    .btn-remove{
+      border-radius:4px;
+      border:1px solid #4b5563;
+      background:#020617;
+      color:#fca5a5;
+      width:34px;
+      height:34px;
+      min-width:34px;
+      font-size:16px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition:background .16s, transform .12s, border-color .16s;
+    }
+    .btn-remove:hover{
+      background:#7f1d1d;
+      border-color:#fca5a5;
+      transform:translateY(-1px);
+    }
+
+    #cable-rows{
+      margin-top:4px;
+    }
+
+    .btn-add{
+      margin-top:10px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px dashed #4b5563;
+      background:#020617;
+      color:#e5e7eb;
+      cursor:pointer;
+      font-size:13px;
+    }
+    .btn-add span.icon{
+      font-size:16px;
+      line-height:1;
+    }
+
+    .actions{
+      margin-top:18px;
+      display:flex;
+      justify-content:center;
+    }
+    .btn-primary{
+      padding:10px 26px;
+      border-radius:999px;
+      border:none;
+      background:linear-gradient(135deg,#38bdf8,#6366f1);
+      color:white;
+      font-size:15px;
+      cursor:pointer;
+      letter-spacing:0.06em;
+      text-transform:uppercase;
+      font-weight:600;
+      box-shadow:0 10px 25px rgba(37,99,235,0.45);
+      transition:transform .12s, box-shadow .12s, filter .12s;
+    }
+    .btn-primary:hover{
+      filter:brightness(1.07);
+      transform:translateY(-1px);
+      box-shadow:0 14px 36px rgba(37,99,235,0.6);
+    }
+
+    .result-box{
+      margin-top:16px;
+      padding:16px 18px;
+      background:#020617;
+      border:1px solid #1f2937;
+      border-radius:12px;
+      box-shadow:0 4px 14px rgba(15,23,42,0.55);
+      text-align:center;
+    }
+    .result-info p{
+      margin:4px 0;
+      font-size:13px;
+    }
+
+    /* Gráfico */
+    .graph-wrapper{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      margin-bottom:10px;
+    }
+    #occupancyGraph{
+      width:110px;
+      height:110px;
+    }
+
+    .status-pill{
+      display:inline-flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:2px;
+      padding:4px 12px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:600;
+      margin-top:6px;
+    }
+    .status-ok{
+      background:rgba(34,197,94,0.15);
+      color:#bbf7d0;
+      border:1px solid rgba(34,197,94,0.55);
+    }
+    .status-high{
+      background:rgba(248,113,113,0.15);
+      color:#fecaca;
+      border:1px solid rgba(248,113,113,0.65);
+    }
+    .status-line1,.status-line2{
+      line-height:1.2;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Calculadora de Ocupação de Eletrodutos</h1>
+
+    <!-- INFRAESTRUTURA -->
+    <div class="section">
+      <h3>INFRAESTRUTURA</h3>
+      <div class="fields-grid">
+        <div class="field">
+          <label for="tipoInfra">Tipo da Infraestrutura</label>
+          <select id="tipoInfra">
+            <option value="eletroduto">Eletroduto</option>
+            <option value="eletrocalha">Eletrocalha</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="dimensaoInfra">Dimensão</label>
+          <select id="dimensaoInfra"></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- CABEAMENTO -->
+    <div class="section">
+      <h3>CABEAMENTO</h3>
+
+      <div id="cable-rows"></div>
+
+      <button type="button" class="btn-add" id="addCable">
+        <span class="icon">+</span> Adicionar linha de cabos
+      </button>
+    </div>
+
+    <!-- AÇÕES -->
+    <div class="actions">
+      <button type="button" class="btn-primary" id="btnCalcular">
+        Calcular
+      </button>
+    </div>
+
+    <!-- RESULTADO (inicialmente oculto) -->
+    <div class="section" id="resultSection" style="display:none;">
+      <div class="result-box result-info">
+
+        <!-- Gráfico -->
+        <div class="graph-wrapper">
+          <svg id="occupancyGraph" viewBox="0 0 100 100"></svg>
+        </div>
+
+        <!-- Textos -->
+        <p>Infraestrutura: <span id="resInfra">-</span></p>
+        <p>Área interna da infraestrutura:
+          <span id="resAreaInfra">-</span> mm²
+        </p>
+        <p>Área total dos cabos:
+          <span id="resAreaCabos">-</span> mm²
+        </p>
+        <p>Percentual de ocupação:
+          <span id="resPercentual">-</span> %
+        </p>
+
+        <!-- Pill em duas linhas -->
+        <p>
+          <span id="resSituacao" class="status-pill">
+            <span class="status-line1">-</span>
+            <span class="status-line2">Recomendado pela NBR 5410:2004</span>
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Dimensões de infraestrutura
+  const eletrodutos = {
+    'Ø3/4" (20mm)': 20,
+    'Ø1" (25mm)': 25,
+    'Ø1.1/4"(32mm)': 32,
+    'Ø1.1/2 (40mm)': 40,
+    'Ø2"(50mm)': 50,
+    'Ø2.1/2(65mm)': 65,
+    'Ø3"(75mm)': 75,
+    'Ø3.1/2"(90mm)': 90,
+    'Ø4"(100mm)': 100
+  };
+
+  const eletrocalhas = {
+    '50mm x 100mm': {w:100, h:50},
+    '100mm x 100mm': {w:100, h:100},
+    '150mm x 100mm': {w:150, h:100},
+    '200mm x 100mm': {w:200, h:100},
+    '250mm x 100mm': {w:250, h:100}
+  };
+
+  // Áreas unitárias dos cabos (mm²)
+  const cableAreas = {
+    'Superastic Flex (PVC - 450/750V)': {
+      '2.5': 9.6,   '4': 12.6,  '6': 16.6,  '10': 27.3,
+      '16': 44.2,  '25': 58.1,  '35': 88.2,  '50':113.0,
+      '70':147.3,  '95':196.0, '120':234.9, '150':301.6,
+      '185':362.9, '240':467.4
+    },
+    'Sintenax Flex (PVC - 0,6/1kV)': {
+      '2.5':22.9,   '4':33.2,   '6':39.6,   '10':50.2,
+      '16':72.3,   '25':95.0,  '35':134.7,  '50':169.6,
+      '70':211.1,  '95':274.5, '120':349.5, '150':404.5,
+      '185':482.8, '240':664.7
+    },
+    'Afumex Flex (LSHF - 450/750V)': {
+      '2.5': 9.6,   '4':12.6,   '6':16.6,   '10':27.3,
+      '16':44.2,  '25':58.1,  '35':88.2,  '50':113.0,
+      '70':147.3,  '95':196.0, '120':234.9, '150':301.6,
+      '185':362.9, '240':467.4
+    },
+    'Afumex Flex (HEPR - 0,6/1kV)': {
+      '2.5':21.2,   '4':25.5,   '6':30.2,   '10':43.0,
+      '16':63.6,   '25':83.3,  '35':120.7,  '50':149.5,
+      '70':193.5,  '95':240.4, '120':289.4, '150':369.6,
+      '185':437.2, '240':555.4
+    }
+  };
+
+  const bitolas = [
+    '2,5mm²','4mm²','6mm²','10mm²','16mm²','25mm²','35mm²',
+    '50mm²','70mm²','95mm²','120mm²','150mm²','185mm²','240mm²'
+  ];
+
+  const tipoInfraSelect     = document.getElementById('tipoInfra');
+  const dimensaoInfraSelect = document.getElementById('dimensaoInfra');
+  const cableRowsContainer  = document.getElementById('cable-rows');
+  const btnAddCable         = document.getElementById('addCable');
+  const btnCalcular         = document.getElementById('btnCalcular');
+  const resultSection       = document.getElementById('resultSection');
+
+  let hasCalculated = false; // controla se já foi feito ao menos um cálculo
+
+  function populateDimensoes(){
+    const tipo = tipoInfraSelect.value;
+    dimensaoInfraSelect.innerHTML = '';
+    const source = tipo === 'eletroduto' ? eletrodutos : eletrocalhas;
+    Object.keys(source).forEach(label=>{
+      const opt = document.createElement('option');
+      opt.value = label;
+      opt.textContent = label;
+      dimensaoInfraSelect.appendChild(opt);
+    });
+  }
+
+  function bitolaKeyFromLabel(label){
+    return label.replace('mm²','').replace(',','.').trim();
+  }
+
+  // Criação de uma linha de cabeamento
+  function createCableRow(){
+    const row = document.createElement('div');
+    row.className = 'cable-row';
+
+    // Tipo de cabo
+    const fieldTipo = document.createElement('div');
+    fieldTipo.className = 'field';
+    const lblTipo = document.createElement('label');
+    lblTipo.textContent = 'Tipo de cabo';
+    const selTipo = document.createElement('select');
+    selTipo.className = 'cable-type';
+    [
+      'Superastic Flex (PVC - 450/750V)',
+      'Sintenax Flex (PVC - 0,6/1kV)',
+      'Afumex Flex (LSHF - 450/750V)',
+      'Afumex Flex (HEPR - 0,6/1kV)'
+    ].forEach(t=>{
+      const o = document.createElement('option');
+      o.value = o.textContent = t;
+      selTipo.appendChild(o);
+    });
+    fieldTipo.appendChild(lblTipo);
+    fieldTipo.appendChild(selTipo);
+
+    // Bitola
+    const fieldBitola = document.createElement('div');
+    fieldBitola.className = 'field';
+    const lblBitola = document.createElement('label');
+    lblBitola.textContent = 'Bitola do cabo';
+    const selBitola = document.createElement('select');
+    selBitola.className = 'cable-size';
+    bitolas.forEach(b=>{
+      const o = document.createElement('option');
+      o.value = b;
+      o.textContent = b;
+      selBitola.appendChild(o);
+    });
+    fieldBitola.appendChild(lblBitola);
+    fieldBitola.appendChild(selBitola);
+
+    // Área unitária
+    const fieldArea = document.createElement('div');
+    fieldArea.className = 'field field-small';
+    const lblArea = document.createElement('label');
+    lblArea.textContent = 'Área unitária (mm²)';
+    const inpArea = document.createElement('input');
+    inpArea.type = 'number';
+    inpArea.step = '0.1';
+    inpArea.className = 'cable-area';
+    fieldArea.appendChild(lblArea);
+    fieldArea.appendChild(inpArea);
+
+    // Quantidade
+    const fieldQtd = document.createElement('div');
+    fieldQtd.className = 'field field-small';
+    const lblQtd = document.createElement('label');
+    lblQtd.textContent = 'Quantidade de cabos';
+    const inpQtd = document.createElement('input');
+    inpQtd.type = 'number';
+    inpQtd.min = '0';
+    inpQtd.step = '1';
+    inpQtd.value = '1';
+    inpQtd.className = 'cable-qtd';
+    fieldQtd.appendChild(lblQtd);
+    fieldQtd.appendChild(inpQtd);
+
+    // Botão remover
+    const btnRem = document.createElement('button');
+    btnRem.type = 'button';
+    btnRem.className = 'btn-remove';
+    btnRem.textContent = 'X';
+    btnRem.title = 'Remover linha';
+
+    row.appendChild(fieldTipo);
+    row.appendChild(fieldBitola);
+    row.appendChild(fieldArea);
+    row.appendChild(fieldQtd);
+    row.appendChild(btnRem);
+
+    // Eventos
+    function updateArea(){
+      const tipo = selTipo.value;
+      const bKey = bitolaKeyFromLabel(selBitola.value);
+      const map = cableAreas[tipo] || {};
+      const val = map[bKey];
+      if(val !== undefined){
+        inpArea.value = val.toString();
+      }
+    }
+    selTipo.addEventListener('change', updateArea);
+    selBitola.addEventListener('change', updateArea);
+    btnRem.addEventListener('click', ()=>{
+      cableRowsContainer.removeChild(row);
+      if(!cableRowsContainer.querySelector('.cable-row')){
+        cableRowsContainer.appendChild(createCableRow());
+      }
+    });
+
+    // preenchimento inicial
+    updateArea();
+
+    return row;
+  }
+
+  // Função principal de cálculo
+  function calcular(){
+    const tipo = tipoInfraSelect.value;
+    const dimLabel = dimensaoInfraSelect.value;
+
+    if(!dimLabel){
+      alert('Selecione a dimensão da infraestrutura.');
+      return;
+    }
+
+    let infraArea = 0; // mm²
+    if(tipo === 'eletroduto'){
+      const d = eletrodutos[dimLabel]; // mm
+      if(d){
+        infraArea = Math.PI * Math.pow(d,2) / 4;
+      }
+    }else{
+      const dims = eletrocalhas[dimLabel];
+      if(dims){
+        infraArea = dims.w * dims.h;
+      }
+    }
+
+    // Somatório das áreas dos cabos
+    let totalCabos = 0;
+
+    cableRowsContainer.querySelectorAll('.cable-row').forEach(row=>{
+      const areaInput = row.querySelector('.cable-area');
+      const qtdInput  = row.querySelector('.cable-qtd');
+      let areaUnit = parseFloat((areaInput.value || '').toString().replace(',','.'));
+      let qtd      = parseFloat(qtdInput.value || '0');
+      if(!isFinite(areaUnit)) areaUnit = 0;
+      if(!isFinite(qtd)) qtd = 0;
+      if(areaUnit > 0 && qtd > 0){
+        const areaRow = areaUnit * qtd;
+        totalCabos += areaRow;
+      }
+    });
+
+    const perc = infraArea > 0 ? (totalCabos/infraArea)*100 : 0;
+
+    // Preencher resumo
+    document.getElementById('resInfra').textContent =
+      (tipo === 'eletroduto' ? 'Eletroduto' : 'Eletrocalha') + ' - ' + dimLabel;
+
+    document.getElementById('resAreaInfra').textContent =
+      infraArea ? formatNumber(infraArea,1) : '-';
+
+    document.getElementById('resAreaCabos').textContent =
+      totalCabos ? formatNumber(totalCabos,1) : '-';
+
+    document.getElementById('resPercentual').textContent =
+      infraArea ? formatNumber(perc,1) : '-';
+
+    const situacaoEl = document.getElementById('resSituacao');
+    const line1El = situacaoEl.querySelector('.status-line1');
+
+    situacaoEl.classList.remove('status-ok','status-high');
+
+    if(!infraArea){
+      line1El.textContent = '-';
+    }else if(perc <= 40){
+      situacaoEl.classList.add('status-ok');
+      line1El.textContent = 'Abaixo do limite de 40%';
+    }else{
+      situacaoEl.classList.add('status-high');
+      line1El.textContent = 'Acima do limite de 40%';
+    }
+
+    // Desenhar gráfico
+    drawGraph(tipo, perc);
+
+    // Exibe o bloco de resultado na primeira vez que calcular
+    if(!hasCalculated){
+      resultSection.style.display = 'block';
+      hasCalculated = true;
+    }
+  }
+
+  function formatNumber(val,dec){
+    return val.toLocaleString('pt-BR',{
+      minimumFractionDigits:dec,
+      maximumFractionDigits:dec
+    });
+  }
+
+// Desenho do gráfico (círculo para eletroduto, retângulo 150x100 para eletrocalha)
+    function drawGraph(tipoInfra, perc){
+    const svg = document.getElementById('occupancyGraph');
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    const NS = 'http://www.w3.org/2000/svg';
+    let pct = isFinite(perc) ? Math.max(0, Math.min(perc, 100)) : 0;
+
+    let textX = 50; // posição padrão do texto
+    let textY = 55;
+
+    if (tipoInfra === 'eletroduto') {
+        // ViewBox para o círculo
+        svg.setAttribute('viewBox','0 0 100 100');
+
+        const cx = 50;
+        const cy = 50;
+        const R  = 40;
+
+        // Borda do círculo
+        const border = document.createElementNS(NS,'circle');
+        border.setAttribute('cx',cx);
+        border.setAttribute('cy',cy);
+        border.setAttribute('r',R);
+        border.setAttribute('fill','none');
+        border.setAttribute('stroke','#9ca3af'); // cinza
+        border.setAttribute('stroke-width','2');
+        svg.appendChild(border);
+
+        // ClipPath circular
+        const defs = document.createElementNS(NS,'defs');
+        const clip = document.createElementNS(NS,'clipPath');
+        clip.setAttribute('id','clipCircle');
+        const circleClip = document.createElementNS(NS,'circle');
+        circleClip.setAttribute('cx',cx);
+        circleClip.setAttribute('cy',cy);
+        circleClip.setAttribute('r',R-1);
+        clip.appendChild(circleClip);
+        defs.appendChild(clip);
+        svg.appendChild(defs);
+
+        // Retângulo de preenchimento de baixo pra cima
+        const fillHeight = (2*R) * (pct/100);
+        const rect = document.createElementNS(NS,'rect');
+        rect.setAttribute('x',cx-R+1);
+        rect.setAttribute('width',2*R-2);
+        rect.setAttribute('y',cy+R-fillHeight);
+        rect.setAttribute('height',fillHeight);
+        rect.setAttribute('fill','#38bdf8');
+        rect.setAttribute('clip-path','url(#clipCircle)');
+        svg.appendChild(rect);
+
+        // Texto central – já está certo para o círculo
+        textX = cx;
+        textY = cy + 5;
+
+    } else {
+        // Eletrocalha -> gráfico 150x100
+        const sizeX = 150;
+        const sizeY = 100;
+        const x0 = 5;
+        const y0 = 5;
+
+        // Ajuste do viewBox para comportar 150x100 + margens
+        svg.setAttribute('viewBox','0 0 160 110');
+
+        // Borda do retângulo
+        const border = document.createElementNS(NS,'rect');
+        border.setAttribute('x', x0);
+        border.setAttribute('y', y0);
+        border.setAttribute('width', sizeX);
+        border.setAttribute('height', sizeY);
+        border.setAttribute('fill','none');
+        border.setAttribute('stroke','#9ca3af');
+        border.setAttribute('stroke-width','2');
+        svg.appendChild(border);
+
+        // ClipPath retangular
+        const defs = document.createElementNS(NS,'defs');
+        const clip = document.createElementNS(NS,'clipPath');
+        clip.setAttribute('id','clipSquare');
+
+        const rectClip = document.createElementNS(NS,'rect');
+        rectClip.setAttribute('x', x0+1);
+        rectClip.setAttribute('y', y0+1);
+        rectClip.setAttribute('width', sizeX-2);
+        rectClip.setAttribute('height', sizeY-2);
+
+        clip.appendChild(rectClip);
+        defs.appendChild(clip);
+        svg.appendChild(defs);
+
+        // Preenchimento de baixo pra cima
+        const fillHeight = sizeY * (pct / 100);
+        const rectFill = document.createElementNS(NS,'rect');
+        rectFill.setAttribute('x', x0+1);
+        rectFill.setAttribute('width', sizeX-2);
+        rectFill.setAttribute('y', y0 + (sizeY - fillHeight) - 1);
+        rectFill.setAttribute('height', fillHeight);
+        rectFill.setAttribute('fill','#38bdf8');
+        rectFill.setAttribute('clip-path','url(#clipSquare)');
+        svg.appendChild(rectFill);
+
+        // Texto no centro geométrico do retângulo
+        textX = x0 + sizeX/2;      // 5 + 150/2 = 80
+        textY = y0 + sizeY/2 + 5;  // 5 + 100/2 + pequeno ajuste
+    }
+
+    // Texto do percentual no centro
+    const text = document.createElementNS(NS,'text');
+    text.setAttribute('x', textX.toString());
+    text.setAttribute('y', textY.toString());
+    text.setAttribute('text-anchor','middle');
+    text.setAttribute('fill','#e5e7eb');
+    text.setAttribute('font-size','20');
+    text.setAttribute('font-weight','600');
+    text.textContent = isFinite(perc) ? `${pct.toFixed(1)}%` : '-';
+    svg.appendChild(text);
+    }
+
+  // Inicialização
+  populateDimensoes();
+  cableRowsContainer.appendChild(createCableRow());
+  // NÃO chamar calcular() aqui – só depois do clique em "Calcular"
+
+  tipoInfraSelect.addEventListener('change', populateDimensoes);
+  dimensaoInfraSelect.addEventListener('change', ()=>{});
+  btnAddCable.addEventListener('click', ()=>{
+    cableRowsContainer.appendChild(createCableRow());
+  });
+  btnCalcular.addEventListener('click', calcular);
+</script>
+</body>
+</html>
